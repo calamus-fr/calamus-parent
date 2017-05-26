@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>fr.calamus.common</groupId>
+        <artifactId>calamus-common-mail</artifactId>
+        <version>1.0</version>
+    </parent>
+    <artifactId>calamus-mail-view</artifactId>
+    <packaging>jar</packaging>
+    <dependencies>
+        <dependency>
+            <groupId>org.swinglabs.swingx</groupId>
+            <artifactId>swingx-all</artifactId>
+            <version>1.6.5</version>
+            <type>jar</type>
+        </dependency>
+       <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>calamus-common-view</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>fr.calamus.common</groupId>
+            <artifactId>calamus-mail-model</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>fr.calamus.common</groupId>
+            <artifactId>calamus-mail-core</artifactId>
+        </dependency>
+    </dependencies>
+    <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+    </properties>
+</project>
