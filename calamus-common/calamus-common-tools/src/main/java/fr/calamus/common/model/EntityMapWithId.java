@@ -18,52 +18,52 @@ public class EntityMapWithId extends EntityMap{
 
 	public EntityMapWithId(String cols) {
 		super(cols);
-		if(getId()==null)setId(-1);
+		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(String cols, String labels) {
 		super(cols, labels);
-		if(getId()==null)setId(-1);
+		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(Map<? extends String, ? extends Object> m, String cols) {
 		super(m, cols);
-		if(getId()==null)setId(-1);
+		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(Map<? extends String, ? extends Object> m, String cols, String labels) {
 		super(m, cols, labels);
-		if(getId()==null)setId(-1);
+		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(List<String> cols) {
 		super(cols);
-		if(getId()==null)setId(-1);
+		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(List<String> cols, List<String> labels) {
 		super(cols, labels);
-		if(getId()==null)setId(-1);
+		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(Map<? extends String, ? extends Object> m, List<String> cols) {
 		super(m, cols);
-		if(getId()==null)setId(-1);
+		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(Map<? extends String, ? extends Object> m, List<String> cols, List<String> labels) {
 		super(m, cols, labels);
-		if(getId()==null)setId(-1);
+		//if(getId()==null)setId(-1);
 	}
 
 	//@Override
-	public Integer getId() {
-		return getInteger(idKey);
+	public int getId() {
+		return getInt(idKey);
 	}
 
 	//@Override
 	public void setId(Integer id) {
-		put(idKey, id == null ? null : id);
+		put(idKey, id == null ? -1 : id);
 	}
 
 

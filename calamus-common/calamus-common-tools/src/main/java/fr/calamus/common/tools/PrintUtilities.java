@@ -8,7 +8,6 @@ import java.awt.print.PageFormat;
 import java.awt.print.Printable;
 import java.awt.print.PrinterException;
 import java.awt.print.PrinterJob;
-
 import javax.swing.RepaintManager;
 
 
@@ -35,6 +34,7 @@ public class PrintUtilities implements Printable {
             }
     }
 
+	@Override
     public int print(Graphics g, PageFormat pf, int pageIndex) {
 
         pf.setOrientation(PageFormat.LANDSCAPE);

@@ -44,7 +44,6 @@ public class ToolBox {
 		}
 	}
 
-
 	public static void log(String s, Object o) {
 		log((o == null || o.getClass() == null) ? "null" : (o instanceof Class ? ((Class<?>) o).getSimpleName() : o
 			.getClass().getSimpleName()) + " : " + s);
@@ -53,6 +52,7 @@ public class ToolBox {
 	public static void log(String s) {
 		System.out.println(s);
 	}
+
 	/*public static boolean isFullOfNumbers(String s) {
 		if (s == null) {
 			return false;
@@ -109,7 +109,6 @@ public class ToolBox {
 		s = s.replace("'", "''");
 		return "'" + s + "'";
 	}
-
 
 	@SuppressWarnings("finally")
 	public static List<String> post(String adress, List<String> keys, List<String> values) throws IOException {
@@ -175,7 +174,6 @@ public class ToolBox {
 		in.close();
 		return l;
 	}
-
 
 	@SuppressWarnings("deprecation")
 	public static String echapperDateSeulePourHsql(Date d) {
@@ -249,7 +247,6 @@ public class ToolBox {
 		// if(v.size()>)v.remove(0);
 		return v;
 	}*/
-
 	public static boolean checkInternetConnection() {
 		boolean b;
 		try {
@@ -262,7 +259,6 @@ public class ToolBox {
 		//log("checkInternetConnection:" + b);
 		return b;
 	}
-
 
 	public static boolean mapIsNullOrEmpty(Map<?, ?> m) {
 		return m == null || m.size() == 0;
@@ -291,7 +287,9 @@ public class ToolBox {
 	}
 
 	public static boolean isEmpty(String s) {
-		if(s==null)return true;
+		if (s == null) {
+			return true;
+		}
 		return s.trim().isEmpty();
 	}
 
@@ -327,6 +325,7 @@ public class ToolBox {
 	public static boolean isFullOfNumbers(String s) {
 		return isFullOfNumbers(s, false);
 	}
+
 	public static boolean isFullOfNumbers(String s, boolean acceptSpace) {
 		if (s == null) {
 			return false;
@@ -337,7 +336,9 @@ public class ToolBox {
 				int n = Integer.parseInt("" + s.charAt(i));
 				isNumber = true;
 			} catch (Exception e) {
-				if(acceptSpace&&s.charAt(i)==' ')isNumber=true;
+				if (acceptSpace && s.charAt(i) == ' ') {
+					isNumber = true;
+				}
 			}
 			if (!isNumber) {
 				return false;
@@ -346,31 +347,43 @@ public class ToolBox {
 		return true;
 
 	}
+
 	/**
 	 * to lowercase, enleve accents, espaces en trop et ponctuation + trim
+	 *
 	 * @param s
 	 * @return
 	 */
-	public static String simplifierString(String s){
-		if(s==null)return "";
-		s=s.toLowerCase();
-		s=enleverAccents(s);
-		s=enleverPonctuation(s);
-		s=enleverEspacesEnTrop(s);
-		s=s.trim();
+	public static String simplifierString(String s) {
+		if (s == null) {
+			return "";
+		}
+		s = s.toLowerCase();
+		s = enleverAccents(s);
+		s = enleverPonctuation(s);
+		s = enleverEspacesEnTrop(s);
+		s = s.trim();
 		return s;
 	}
-	public static String enleverAccents(String s){
+
+	public static String enleverAccents(String s) {
 		return enleverAccents(s, true);
 	}
-	public static String enleverAccents(String s, boolean toLowerCase){
-		if(s==null)return null;
-		if(toLowerCase)s=s.toLowerCase();
+
+	public static String enleverAccents(String s, boolean toLowerCase) {
+		if (s == null) {
+			return null;
+		}
+		if (toLowerCase) {
+			s = s.toLowerCase();
+		}
 		List<String> l1 = ListsAndArrays.splitToStringList("éèêë,àâáãåä,æ,œ,ìíîï,òóôöõø,úùûü,ÿŷ,ñ,ç", ",");
 		List<String> l2 = ListsAndArrays.splitToStringList("e,a,ae,oe,i,o,u,y,n,c", ",");
-		for(int i=0;i<l1.size();i++){
-			s=s.replaceAll("["+l1.get(i)+"]", l2.get(i));
-			if(!toLowerCase)s=s.replaceAll("["+l1.get(i).toUpperCase()+"]", l2.get(i).toUpperCase());
+		for (int i = 0; i < l1.size(); i++) {
+			s = s.replaceAll("[" + l1.get(i) + "]", l2.get(i));
+			if (!toLowerCase) {
+				s = s.replaceAll("[" + l1.get(i).toUpperCase() + "]", l2.get(i).toUpperCase());
+			}
 		}
 		/*s=s.replaceAll("[éèêë]", "e");
 		s=s.replaceAll("[àâáãåä]", "a");
@@ -384,12 +397,14 @@ public class ToolBox {
 	}
 
 	public static String enleverPonctuation(String s) {
-		if(s==null)return null;
-		s=s.replaceAll("-", " ");
-		s=s.replaceAll("[\"(),;:!?./\b\t\n\f\r\'\\{}]", " ");// TODO ajouter espaces insécables
-		s=s.replaceAll(" +", " ");
+		if (s == null) {
+			return null;
+		}
+		s = s.replaceAll("-", " ");
+		s = s.replaceAll("[\"(),;:!?./\b\t\n\f\r\'\\{}]", " ");// TODO ajouter espaces insécables
+		s = s.replaceAll(" +", " ");
 		//s=s.replaceAll("  ", " ");
-		s=s.trim();
+		s = s.trim();
 		return s;
 	}
 
@@ -415,6 +430,7 @@ public class ToolBox {
 		//s = s.replaceAll("\"", "\\\"");
 		return s;
 	}
+
 	public static String echapperDoublesQuotes(String s) {
 		//System.out.println("\\"+"'");
 		if (s == null) {
@@ -437,39 +453,176 @@ public class ToolBox {
 	}
 
 	public static boolean stringIsNullOrEmpty(String s) {
-		return s==null||s.isEmpty();
+		return s == null || s.isEmpty();
 	}
 
 	public static boolean stringIsNullOrBlank(String s) {
-		return s==null||s.trim().isEmpty();
+		return s == null || s.trim().isEmpty();
 	}
 
 	public static String enleverEspacesEnTrop(String s) {
-		if(s==null)return "";
-		s=s.replaceAll(" +", " ");
+		if (s == null) {
+			return "";
+		}
+		s = s.replaceAll(" +", " ");
 		return s;
 	}
 
 	public static String reverseString(String s) {
-		if(s==null)return null;
-		StringBuilder b=new StringBuilder();
+		if (s == null) {
+			return null;
+		}
+		StringBuilder b = new StringBuilder();
 		int l = s.length();
-		for(int i=0;i<l;i++){
-			b.append(s.charAt(l-i-1));
+		for (int i = 0; i < l; i++) {
+			b.append(s.charAt(l - i - 1));
 		}
 		return b.toString();
 	}
 
 	public static String garderUniquementChiffres(String s) {
-		if(s==null)return null;
-		String nums="0123456789";
-		StringBuilder b=new StringBuilder();
-		for(int i=0;i<s.length();i++){
-			String c=""+s.charAt(i);
-			if(nums.contains(c)){
+		if (s == null) {
+			return null;
+		}
+		String nums = "0123456789";
+		StringBuilder b = new StringBuilder();
+		for (int i = 0; i < s.length(); i++) {
+			String c = "" + s.charAt(i);
+			if (nums.contains(c)) {
 				b.append(c);
 			}
 		}
 		return b.toString();
 	}
+
+	public static String doubleToString(Double d, char sep) {
+		if (d == null||d==Double.NaN||"NaN".equals(""+d)) {
+			return "";
+		}
+		String s = ("" + d);
+		//System.out.println("s="+s);
+		s = s.replace('.',',');
+		//System.out.println("s="+s);
+		String p,cents;
+		if (s.contains(",")) {
+			int i = s.indexOf(",");
+			p = s.substring(0, i);
+			if (p.isEmpty()) {
+				p = "0";
+			}
+			cents = s.substring(i + 1);
+			//System.out.println("p(1)="+p);
+			//System.out.println("cents(1)="+cents);
+			if (cents.isEmpty()) {
+				cents = "00";
+			}
+			if (cents.length() == 1) {
+				cents += "0";
+			}
+			if(cents.contains("E")){
+				try{
+					String exp=s.substring(s.indexOf("E")+1);
+					p=s.substring(0, s.indexOf("E")).replaceAll(",", ".");
+					//System.out.println("exp="+exp);
+					//System.out.println("p(exp1)="+p);
+					int np = Integer.parseInt(exp);
+					double pp=Double.parseDouble(p);
+					//System.out.println("pp="+pp);
+					//System.out.println("np="+np);
+					np=(int) Math.pow(10, np);
+					//System.out.println(" -> "+np);
+					pp=pp*np;
+					p=""+((int)pp);
+					cents="00";
+					//System.out.println("p(exp2)="+p);
+					//System.out.println("cents(exp)="+cents);
+				}catch(NumberFormatException e){
+
+				}
+			}
+			if (cents.length() > 2) {
+				cents = cents.substring(0, 2);
+			}
+		}else{
+			//System.out.println("no ','");
+			p=s;
+			cents="00";
+		}
+		//System.out.println("p(fin)="+p);
+		//System.out.println("cents(fin)="+cents);
+		if(p.length()>3){
+			String pe="";
+			for(int i=0;i<p.length();i++){
+				pe=p.charAt(p.length()-i-1)+pe;
+				if((i+1)%3==0)pe=" "+pe;
+			}
+			p=pe.trim();
+		}
+		s=p + "," + cents;
+		//System.out.println("sep="+sep);
+		//System.out.println("s="+s);
+		if (sep != ',') {
+			s = s.replaceAll(",", "" + sep);
+		}
+		//int is=s.
+		return s;
+	}
+
+	public static Double parseMontant(String text, char sep) {
+		if (text == null) {
+			return null;
+		}
+		text = text.replaceAll(" ", "");
+		if (sep == '.') {
+			text = text.replaceAll(",", "");
+		} else if (sep == ',') {
+			text = text.replaceAll("\\.", "");
+		}
+		//String sepReg=""+sep;
+		//if(sep=='.')sepReg="\\.";
+		if (text.contains("" + sep)) {
+			int i = text.indexOf("" + sep);
+			String p = text.substring(0, i);
+			String cents = text.substring(i + 1);
+			if (cents.isEmpty()) {
+				cents = "00";
+			}
+			if (cents.length() == 1) {
+				cents += "0";
+			}
+			if (cents.length() > 2) {
+				cents = cents.substring(0, 2);
+			}
+			if (p.isEmpty()) {
+				p = "0";
+			}
+			text = p + "," + cents;
+		}
+		//if(','!=sep)
+		text = text.replaceAll(",", ".");
+		
+		Double m = null;
+		try {
+			m = Double.parseDouble(text);
+		} catch (NumberFormatException e) {
+			//log.debug(e);
+		}
+		return m;
+	}
+
+	public static String escapeCharactersInHtml(String s) {
+		StringBuilder out = new StringBuilder(Math.max(16, s.length()));
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c > 127 || c == '"' || c == '<' || c == '>' || c == '&') {
+				out.append("&#");
+				out.append((int) c);
+				out.append(';');
+			} else {
+				out.append(c);
+			}
+		}
+		return out.toString();
+	}
+
 }

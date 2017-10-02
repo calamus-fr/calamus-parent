@@ -14,6 +14,7 @@ import java.util.List;
  */
 public class ListsAndArrays {
 
+	//private static final Log log = LogFactory.getLog(ListsAndArrays.class);
 	public static String[] newArrayOfStrings(List<String> l) {
 		if (l == null) {
 			return null;
@@ -160,5 +161,36 @@ public class ListsAndArrays {
 			}
 		}
 		return sb.toString();
+	}
+
+	public static boolean integerListContains(List<Integer> listeIds, Integer id) {
+		if(listeIds==null)return false;
+		System.out.println("integerListContains ? "+listeIds+" "+id);
+		for (int i = 0; i < listeIds.size(); i++) {
+			Integer get = listeIds.get(i);
+			if(get==null&&id==null)return true;
+			if(get!=null&&id!=null&&get.intValue()==id.intValue())return true;
+		}
+		return false;
+	}
+
+	public static Object[][] mergeInArray(List<Object[][]> datas) {
+		int length=0;
+		if(datas==null)return null;
+		for (int i = 0; i < datas.size(); i++) {
+			Object[][] t = datas.get(i);
+			length+=t.length;
+		}
+		Object[][] a=new Object[length][];
+		int n=0;
+		for (int i = 0; i < datas.size(); i++) {
+			Object[][] t = datas.get(i);
+			for (int j = 0; j < t.length; j++) {
+				Object[] r = t[j];
+				a[n]=r;
+				n++;
+			}
+		}
+		return a;
 	}
 }
