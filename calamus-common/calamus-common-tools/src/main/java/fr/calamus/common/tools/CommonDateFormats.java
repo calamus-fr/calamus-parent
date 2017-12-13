@@ -5,7 +5,9 @@
  */
 package fr.calamus.common.tools;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 /**
@@ -56,5 +58,20 @@ public class CommonDateFormats {
 		}
 		return frTimestampSimplerFormatter;
 	}
-
+	public static Date pgParseDateOrNull(String s){
+		if(s==null)return null;
+		try{
+			return pgDateFormatter().parse(s);
+		}catch(ParseException e){
+			return null;
+		}
+	}
+	public static Date frParseDateOrNull(String s){
+		if(s==null)return null;
+		try{
+			return frDateFormatter().parse(s);
+		}catch(ParseException e){
+			return null;
+		}
+	}
 }
