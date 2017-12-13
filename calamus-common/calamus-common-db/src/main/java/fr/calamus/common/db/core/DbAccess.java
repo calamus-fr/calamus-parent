@@ -1,5 +1,6 @@
 package fr.calamus.common.db.core;
 
+import fr.calamus.common.tools.ToolBox;
 import java.io.Serializable;
 import java.net.SocketException;
 import java.sql.Connection;
@@ -28,11 +29,11 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	protected String lastExceptionMessage;
 	protected String dbUrl;
 	private static final Log log = LogFactory.getLog(DbAccess.class);
-	private String user;
-	private String pass;
+	protected String user;
+	protected String pass;
 	private int timeout;
 	private long lastUsedTime;
-	private boolean online;
+	protected boolean online;
 	public static int logLevel = 0;
 
 	public DbAccess(C cnx, Map<String, String> map) {
@@ -104,7 +105,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		try {
 			String arg = "%";
 			DatabaseMetaData md = getCnx().getMetaData();
-			log("listTables:" + md.getDatabaseProductName(),1);
+			log("listTables:" + md.getDatabaseProductName(), 1);
 			if (md.getDatabaseProductName().toLowerCase().contains("postgres")) {
 				arg = null;
 			} else if (md.getDatabaseProductName().toLowerCase().contains("hsql")) {
@@ -130,7 +131,46 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		return lastExceptionMessage;
 	}
 
-	private void checkTables(Map<String, String> map) {
+	public void checkConstraints(Map<String, Map<String, String>> map) {
+		if (map == null) {
+			return;
+		}
+		//if(cnx instanceof pgconn)
+		List<String> tablesExistantes = listTables();
+		//List<String> contraintesExistantes=new ArrayList<>();
+		//Statement st = openStatement();
+		for (int i = 0; i < tablesExistantes.size(); i++) {
+			String t = tablesExistantes.get(i).toLowerCase();
+			Map<String, String> m = map.get(t);
+			if (m != null) {
+				String req = "SELECT conname,\n"
+					+ "  pg_catalog.pg_get_constraintdef(r.oid, true) as condef\n"
+					+ "FROM pg_catalog.pg_constraint r\n"
+					+ "WHERE r.conrelid = " + ToolBox.echapperStringPourHSql(t) + "::regclass AND r.contype = 'f'";
+				List<String> contraintesExistantes = selectStringCol(req, "conname");
+				if (contraintesExistantes == null) {
+					contraintesExistantes = new ArrayList<>();
+				} else {
+					log("existing constraints=" + contraintesExistantes,2);
+				}
+				for (String c : m.keySet()) {
+					if (!contraintesExistantes.contains(c)) {
+						log("adding constraint " + c + "...", 1);
+						int n = executeUpdate(m.get(c));
+						log(n >= 0 ? "  ok" : "  error",1);
+					}else log(c+" already exists",1);
+				}
+			}
+		}
+	}
+
+	/*
+	SELECT conname,
+  pg_catalog.pg_get_constraintdef(r.oid, true) as condef
+FROM pg_catalog.pg_constraint r
+WHERE r.conrelid = 'liens_categories_societes'::regclass AND r.contype = 'f' ORDER BY 1
+	 */
+	protected void checkTables(Map<String, String> map) {
 		List<String> tablesExistantes = listTables();
 		if (logLevel > 0) {
 			log.debug("checkTables : tablesExistantes = " + tablesExistantes);
@@ -140,16 +180,18 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		}
 		Statement st = openStatement();
 		for (String tn : map.keySet()) {
-			log(" checking " + tn,1);
+			log(" checking " + tn, 1);
 			if (!tablesExistantes.contains(tn.toUpperCase()) && !tablesExistantes.contains(tn.toLowerCase())) {
-				log("  creation de la table " + tn);
+				log("  creation de la table " + tn, -1);
+				log(map.get(tn), 0);
 				try {
 					st.execute(map.get(tn));
 				} catch (SQLException e) {
 					logException(e);
 				}
-			} else
-				log("  ok",1);
+			} else {
+				log("  ok", 1);
+			}
 		}
 		closeStatement(st);
 	}
@@ -157,7 +199,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	public Statement openTransaction() {
 		Statement st = openStatement();
 		try {
-			log("openTransaction",1);
+			log("openTransaction", 1);
 			st.execute("begin transaction");
 			transactionMode = true;
 			return st;
@@ -169,7 +211,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 
 	public void commitTransaction(Statement st) {
 		try {
-			log("commitTransaction",1);
+			log("commitTransaction", 1);
 			st.execute("commit");
 			transactionMode = false;
 		} catch (SQLException ex) {
@@ -191,7 +233,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	}
 
 	public void close() {
-		log("closing cnx",0);
+		log("closing cnx", 0);
 		try {
 			getCnx().close();
 		} catch (SQLException ex) {
@@ -233,7 +275,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 
 	public void closeStatement(Statement st) {
 		try {
-			log("closing statement",2);
+			log("closing statement", 2);
 			st.close();
 			if (!permanentCnx && !transactionMode) {
 				getCnx().close();
@@ -251,7 +293,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	public List<Map<String, Object>> selectMany(Statement s, String sql) {
 		ResultSet rs = null;
 		long time1 = System.currentTimeMillis();
-		log(sql,0);
+		log(sql, 0);
 		if (isClosed()) {
 			reconnect();
 		}
@@ -276,7 +318,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 
 		}
 		long time2 = System.currentTimeMillis();
-		log("  request time=" + (time2 - time1) + " ms",2);
+		log("  request time=" + (time2 - time1) + " ms", 2);
 		List<Map<String, Object>> l = Parser.getMaps(rs);
 		if (!dontClose) {
 			closeStatement(s);
@@ -286,8 +328,8 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 			log("columns=" + l.get(0).keySet());
 		}*/
 		time2 = System.currentTimeMillis();
-		log(" -> "+l.size()+" lines",0);
-		log("  total time elapsed=" + (time2 - time1) + " ms (" + l.size() + " lines)",1);
+		log(" -> " + l.size() + " lines", 0);
+		log("  total time elapsed=" + (time2 - time1) + " ms (" + l.size() + " lines)", 1);
 		setLastUsedTime();
 		return l;
 	}
@@ -299,7 +341,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	public JSONArray selectManyJson(Statement s, String sql) {
 		ResultSet rs = null;
 		long time1 = System.currentTimeMillis();
-		log(sql,0);
+		log(sql, 0);
 		if (isClosed()) {
 			reconnect();
 		}
@@ -322,7 +364,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 			log("columns=" + l.get(0).keySet());
 		}*/
 		long time2 = System.currentTimeMillis();
-		log("  time elapsed=" + (time2 - time1) + " ms",0);
+		log("  time elapsed=" + (time2 - time1) + " ms", 0);
 		setLastUsedTime();
 		return l;
 	}
@@ -359,6 +401,21 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		return l;
 	}
 
+	public static List<Integer> getIntCol(List<Map<String, Object>> list, String col) {
+		List<Integer> l = new ArrayList<>();
+		for (int i = 0; i < list.size(); i++) {
+			String s = "" + list.get(i).get(col);
+			try {
+				int n = Integer.parseInt(s);
+				l.add(n);
+			} catch (NumberFormatException e) {
+
+			}
+
+		}
+		return l;
+	}
+
 	public List<String> selectStringCol(String sql, String col) {
 		List<Map<String, Object>> lh = selectMany(sql);
 		if (lh == null) {
@@ -367,18 +424,50 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		return getStringCol(lh, col);
 	}
 
+	public List<Integer> selectIntCol(String sql, String col) {
+		List<Map<String, Object>> lh = selectMany(sql);
+		if (lh == null) {
+			return null;
+		}
+		return getIntCol(lh, col);
+	}
+
+	public List<String> selectStringCol(String table, String col, String finReq) {
+		List<Map<String, Object>> lh = selectMany("select " + col + " from " + table + (finReq == null ? "" : " " + finReq));
+		if (lh == null) {
+			return null;
+		}
+		return getStringCol(lh, col);
+	}
+
+	public JSONArray selectOneColJson(String table, String col, String finReq) {
+		JSONArray lh = selectManyJson("select " + col + " from " + table + (finReq == null ? "" : " " + finReq));
+		if (lh == null) {
+			return null;
+		}
+		return lh;
+	}
+
+	public List<Integer> selectIntCol(String table, String col, String finReq) {
+		List<Map<String, Object>> lh = selectMany("select " + col + " from " + table + (finReq == null ? "" : " " + finReq));
+		if (lh == null) {
+			return null;
+		}
+		return getIntCol(lh, col);
+	}
+
 	public int executeUpdate(String sql) {
 		int n = -1;
 		Statement st = openStatement();
 		try {
-			log(sql,0);
+			log(sql, 0);
 			n = st.executeUpdate(sql);
 		} catch (SQLException e) {
 			logException(e);
 		} finally {
 			closeStatement(st);
 			setLastUsedTime();
-			log(" -> " + n,0);
+			log(" -> " + n, 0);
 		}
 		return n;
 	}
@@ -386,13 +475,13 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	public int executeInTransaction(Statement st, String sql) {
 		int n = -1;
 		try {
-			log(sql,0);
+			log(sql, 0);
 			n = st.executeUpdate(sql);
 		} catch (SQLException e) {
 			logException(e);
 		} finally {
 			setLastUsedTime();
-			log(" -> " + n,0);
+			log(" -> " + n, 0);
 		}
 		return n;
 	}
@@ -421,13 +510,13 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		int n = -1;
 		Map<String, Object> map = selectOne(st, "select max(" + col + ") as maxid from " + table);
 		if (map != null) {
-			log("map=" + map,1);
+			log("map=" + map, 1);
 			Object om = map.get("maxid");
 			if (om != null && om instanceof Number) {
 				n = ((Number) om).intValue();
 			}
 		}
-		log("max " + table + "." + col + "=" + n,1);
+		log("max " + table + "." + col + "=" + n, 1);
 		return n;
 	}
 
@@ -437,7 +526,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		try {
 			String arg = "%";
 			DatabaseMetaData md = getCnx().getMetaData();
-			log("listColumns:" + md.getDatabaseProductName(),1);
+			log("listColumns:" + md.getDatabaseProductName(), 1);
 			if (md.getDatabaseProductName().toLowerCase().contains("postgres")) {
 				arg = null;
 			} else if (md.getDatabaseProductName().toLowerCase().contains("hsql")) {
@@ -459,7 +548,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		try {
 			String arg = "%";
 			DatabaseMetaData md = getCnx().getMetaData();
-			log("getPks:" + md.getDatabaseProductName(),1);
+			log("getPks:" + md.getDatabaseProductName(), 1);
 			if (md.getDatabaseProductName().toLowerCase().contains("postgres")) {
 				arg = null;
 			} else if (md.getDatabaseProductName().toLowerCase().contains("hsql")) {
@@ -523,12 +612,12 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	}
 
 	public C newConnexion() {
-		C c = null;
+		C c;
 		try {
 			c = (C) DriverManager.getConnection(dbUrl, user, pass);
-			log("newConnexion ok 1",1);
+			log("newConnexion ok 1", 1);
 		} catch (SQLException ex) {
-			log("newConnexion SQLException 1",1);
+			log("newConnexion SQLException 1", 1);
 			logException(ex);
 			try {
 				Thread.sleep(1000);
@@ -538,7 +627,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 			}
 			try {
 				c = (C) DriverManager.getConnection(dbUrl, user, pass);
-				log("newConnexion ok 2",1);
+				log("newConnexion ok 2", 1);
 			} catch (SQLException ex1) {
 				//log.debug("newConnexion SQLException 2");
 				logException(ex1);

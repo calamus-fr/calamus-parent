@@ -6,7 +6,6 @@
 package fr.calamus.common.db.model;
 
 import fr.calamus.common.tools.ListsAndArrays;
-import fr.calamus.common.tools.ToolBox;
 import java.util.ArrayList;
 import java.util.List;
 import org.apache.commons.logging.Log;
@@ -84,9 +83,21 @@ public class RequestBuilder implements Cloneable{
 		}
 		return this;
 	}
+	public RequestBuilder removeWhere(String where){
+		if(wheres.contains(where)){
+			wheres.remove(where);
+		}
+		return this;
+	}
 	public RequestBuilder addOrder(String order){
 		if(!orders.contains(order)){
 			orders.add(order);
+		}
+		return this;
+	}
+	public RequestBuilder removeOrder(String order){
+		if(orders.contains(order)){
+			orders.remove(order);
 		}
 		return this;
 	}

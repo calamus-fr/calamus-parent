@@ -12,7 +12,6 @@ import fr.calamus.common.tools.CommonDateFormats;
 import fr.calamus.common.tools.ListsAndArrays;
 import fr.calamus.common.tools.ToolBox;
 import java.sql.Timestamp;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -27,8 +26,8 @@ import org.json.JSONObject;
  */
 public class EntitiesAccess {
 
-	private static SimpleDateFormat pgDateFormatter;
-	private static SimpleDateFormat pgTimestampFormatter;
+	//private static SimpleDateFormat pgDateFormatter;
+	//private static SimpleDateFormat pgTimestampFormatter;
 
 	protected final Log log;
 	private final String table;
@@ -61,14 +60,7 @@ public class EntitiesAccess {
 		return ("" + s).trim().length() < 1;
 	}
 
-	protected boolean stringIsEmpty(String s) {
-		if (s == null) {
-			return true;
-		}
-		return s.trim().length() < 1;
-	}
-
-	protected RequestBuilder newRequestBuilder() {
+	public RequestBuilder newRequestBuilder() {
 		RequestBuilder r = new RequestBuilder(table);
 		if(maxLines>0)r.setLimit(maxLines);
 		return r;
@@ -210,5 +202,17 @@ public class EntitiesAccess {
 		if(s.equals("%%%"))s="%";
 		if(s.equals("%%"))s="%";
 		return s;
+	}
+	/**
+	 * 
+	 * @param col the column
+	 * @param val the value (must be escaped if not a number nor null ! )
+	 * @param where
+	 * @return true if updated
+	 */
+	public boolean update(String col, String val, String where){
+		String req="update "+getTable()+" set "+col+"="+val;
+		if(where!=null)req+=" where "+where;
+		return dba().executeUpdate(req)>=0;
 	}
 }

@@ -20,15 +20,18 @@ import org.apache.commons.logging.LogFactory;
  *
  * @author haerwynn
  */
-public abstract class DbCentralFactory<T extends DbCentralFactory> implements IDbFactory<T>{
+public abstract class DbCentralFactory<T extends DbCentralFactory> implements IDbFactory<T> {
+
 	protected static final Map<String, DbCentralFactory<?>> instances = Collections.synchronizedMap(new HashMap<String, DbCentralFactory<?>>());
 	private static final Log log = LogFactory.getLog(DbCentralFactory.class);
 	private static SimpleDateFormat frDateFormatter;
 	private static SimpleDateFormat usDateFormatter;
+	private static boolean instancesObserverIsLaunched=false;
 
 	public static <T extends DbCentralFactory> T init(Class<T> factoryClass) {
+		T db = null;
 		try {
-			T db = (T) factoryClass.newInstance();
+			db = (T) factoryClass.newInstance();
 			instances.put(null, db);
 		} catch (InstantiationException ex) {
 			ex.printStackTrace();
@@ -36,8 +39,9 @@ public abstract class DbCentralFactory<T extends DbCentralFactory> implements ID
 			ex.printStackTrace();
 		}
 		launchInstancesObserver();
-		return null;
+		return db;
 	}
+
 	public static SimpleDateFormat getFrDateFormatter() {
 		if (frDateFormatter == null) {
 			frDateFormatter = new SimpleDateFormat("dd/MM/yyyy");
@@ -46,7 +50,7 @@ public abstract class DbCentralFactory<T extends DbCentralFactory> implements ID
 	}
 
 	public boolean isConnectionOk() {
-		return dbAccess()!=null&&!dbAccess().isClosed();
+		return dbAccess() != null && !dbAccess().isClosed();
 	}
 
 	public static SimpleDateFormat getUsDateFormatter() {
@@ -55,6 +59,7 @@ public abstract class DbCentralFactory<T extends DbCentralFactory> implements ID
 		}
 		return usDateFormatter;
 	}
+
 	public static DbCentralFactory getInstance(String id) {
 		if (instances.get(null) == null) {
 			throw new RuntimeException("Not inited !");
@@ -72,9 +77,11 @@ public abstract class DbCentralFactory<T extends DbCentralFactory> implements ID
 		}
 		return (DbCentralFactory) instances.get(id);
 	}
+
 	public boolean isClosed() {
 		return dbAccess().isClosed();
 	}
+
 	public static DbCentralFactory newInstance() {
 		//return (T) ((T)getInstance()).getNewInstance();
 		DbCentralFactory t = getInstance();
@@ -84,36 +91,46 @@ public abstract class DbCentralFactory<T extends DbCentralFactory> implements ID
 	public static DbCentralFactory getInstance() {
 		return getInstance(null);
 	}
-	protected void reconnect() {
+
+	public void reconnect() {
 		dbAccess().reconnect();
 	}
 
 	protected abstract long cnxTimeOut();
-	private static void launchInstancesObserver() {
-		Timer timer = new Timer("DbFactory-instancesRemover", true);
-		TimerTask task = new TimerTask() {
-			@Override
-			public void run() {
-				synchronized (instances) {
-					long now = System.currentTimeMillis();
-					List<String> toRemove = new ArrayList<>();
-					for (String id : instances.keySet()) {
-						DbCentralFactory db = instances.get(id);
-						if (id!=null && (db == null || now > db.lastUsedTime() + db.cnxTimeOut())) {
-							toRemove.add(id);
+
+	protected static void launchInstancesObserver() {
+		if (!instancesObserverIsLaunched) {
+			Timer timer = new Timer("DbFactory-instancesRemover", true);
+			TimerTask task = new TimerTask() {
+				@Override
+				public void run() {
+					synchronized (instances) {
+						long now = System.currentTimeMillis();
+						List<String> toRemove = new ArrayList<>();
+						for (String id : instances.keySet()) {
+							DbCentralFactory db = instances.get(id);
+							if (id != null && (db == null || now > db.lastUsedTime() + db.cnxTimeOut())) {
+								toRemove.add(id);
+							}
+						}
+						for (String id : toRemove) {
+							DbCentralFactory db = instances.get(id);
+							if (db != null) {
+								db.close();
+							}
+							instances.remove(id);
+						}
+						if (toRemove.size() > 0) {
+							log.debug("removed " + toRemove.size() + " instance(s); remaining " + instances.size());
 						}
 					}
-					for (String id : toRemove) {
-						DbCentralFactory db = instances.get(id);
-						if(db!=null)db.close();
-						instances.remove(id);
-					}
-					if(toRemove.size()>0)log.debug("removed " + toRemove.size() + " instance(s); remaining "+instances.size());
 				}
-			}
-		};
-		timer.schedule(task, 30000, 10000);
+			};
+			timer.schedule(task, 30000, 10000);
+			instancesObserverIsLaunched=true;
+		}
 	}
+
 	public long lastUsedTime() {
 		return dbAccess().lastUsedTime();
 	}
