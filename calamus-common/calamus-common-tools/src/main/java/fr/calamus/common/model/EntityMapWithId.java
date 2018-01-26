@@ -9,63 +9,48 @@ import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * First column is id
  * @author haerwynn
  */
-public class EntityMapWithId extends EntityMap{
+public abstract class EntityMapWithId<T> extends EntityMap{
 
 	private String idKey;
 
 	public EntityMapWithId(String cols) {
 		super(cols);
-		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(String cols, String labels) {
 		super(cols, labels);
-		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(Map<? extends String, ? extends Object> m, String cols) {
 		super(m, cols);
-		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(Map<? extends String, ? extends Object> m, String cols, String labels) {
 		super(m, cols, labels);
-		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(List<String> cols) {
 		super(cols);
-		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(List<String> cols, List<String> labels) {
 		super(cols, labels);
-		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(Map<? extends String, ? extends Object> m, List<String> cols) {
 		super(m, cols);
-		//if(getId()==null)setId(-1);
 	}
 
 	public EntityMapWithId(Map<? extends String, ? extends Object> m, List<String> cols, List<String> labels) {
 		super(m, cols, labels);
-		//if(getId()==null)setId(-1);
 	}
 
-	//@Override
-	public int getId() {
-		return getInt(idKey);
-	}
+	public abstract T getId();
 
-	//@Override
-	public void setId(Integer id) {
-		put(idKey, id == null ? -1 : id);
-	}
-
+	public abstract void setId(T id);
 
 	public List<String> colsNoId() {
 		List<String> a = cols();
@@ -83,5 +68,9 @@ public class EntityMapWithId extends EntityMap{
 	protected void initMeta(List<String> cols, List<String> labels) {
 		super.initMeta(cols, labels);
 		idKey=this.cols().get(0);
+	}
+
+	public String getIdKey(){
+		return idKey;
 	}
 }

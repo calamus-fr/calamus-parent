@@ -22,7 +22,7 @@ public interface IServiceMail {
 
 	List<ListeMailing> getListesMailing();
 
-	int saveListeMailing(ListeMailing l);
+	boolean saveListeMailing(ListeMailing l);
 
 	void ajouterAListe(String nomListe, ListeDestinataires prospects);
 	void ajouterAListe(String nomListe, List<? extends IDestinataireMap> prospects);
@@ -48,5 +48,7 @@ public interface IServiceMail {
 	boolean deleteListesMailing(int[] s);
 
 	public ListeMailing getListeMailing(String titre);
+
+	public ListeMailing getListeMailing(int id);
 
 }

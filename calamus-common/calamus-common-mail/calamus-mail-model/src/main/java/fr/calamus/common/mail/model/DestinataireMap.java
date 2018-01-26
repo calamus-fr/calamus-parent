@@ -1,9 +1,9 @@
 package fr.calamus.common.mail.model;
 
-import fr.calamus.common.model.EntityMapWithId;
+import fr.calamus.common.model.EntityMapWithIntId;
 import java.util.Map;
 
-public class DestinataireMap extends EntityMapWithId implements IDestinataireMap {
+public class DestinataireMap extends EntityMapWithIntId implements IDestinataireMap {
 
 	private static final long serialVersionUID = 698558271438067121L;
 

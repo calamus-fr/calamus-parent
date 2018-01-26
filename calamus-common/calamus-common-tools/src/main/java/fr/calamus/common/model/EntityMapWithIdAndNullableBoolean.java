@@ -12,7 +12,7 @@ import java.util.Map;
  *
  * @author haerwynn
  */
-public class EntityMapWithIdAndNullableBoolean extends EntityMapWithId{
+public class EntityMapWithIdAndNullableBoolean extends EntityMapWithIntId{
 
 	private String booleanCol;
 	public EntityMapWithIdAndNullableBoolean(String cols, String booleanCol) {

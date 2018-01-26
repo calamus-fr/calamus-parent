@@ -155,7 +155,7 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 				}
 				for (String c : m.keySet()) {
 					if (!contraintesExistantes.contains(c)) {
-						log("adding constraint " + c + "...", 1);
+						log("adding constraint " + c + "...", 0);
 						int n = executeUpdate(m.get(c));
 						log(n >= 0 ? "  ok" : "  error",1);
 					}else log(c+" already exists",1);

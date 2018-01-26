@@ -7,7 +7,8 @@
 	<packaging>pom</packaging>
 	<modules>
 		<module>calamus-common</module>
-  </modules>
+	 <module>ade-parent/ade-crm-server</module>
+	</modules>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<calamus.version>1.0</calamus.version>

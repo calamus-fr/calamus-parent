@@ -8,6 +8,8 @@ package fr.calamus.common.db.core;
 import fr.calamus.common.db.model.RequestBuilder;
 import fr.calamus.common.model.BaseEntityMap;
 import fr.calamus.common.model.EntityMap;
+import fr.calamus.common.model.EntityMapWithIntId;
+import fr.calamus.common.model.EntityMapWithStringId;
 import fr.calamus.common.tools.CommonDateFormats;
 import fr.calamus.common.tools.ListsAndArrays;
 import fr.calamus.common.tools.ToolBox;
@@ -92,7 +94,7 @@ public class EntitiesAccess {
 		return rb;
 	}
 
-	protected List<BaseEntityMap> toEntityMaps(List<Map<String, Object>> lm) {
+	protected List<BaseEntityMap> toBaseEntityMaps(List<Map<String, Object>> lm) {
 		if (lm == null) {
 			return null;
 		}
@@ -167,6 +169,36 @@ public class EntitiesAccess {
 			return 0;
 		}
 	}
+	public EntityMap toEntityMap(JSONObject o){
+		if(o==null)return null;
+		EntityMap e=new EntityMap(new ArrayList<>(o.keySet()));
+		for(String col:e.cols()){
+			e.put(col, o.opt(col));
+		}
+		return e;
+	}
+	public EntityMapWithIntId toEntityMapWithIntId(JSONObject o, String pkCol){
+		if(o==null)return null;
+		List<String> cols = new ArrayList<>(o.keySet());
+		cols.remove(pkCol);
+		cols.add(0, pkCol);
+		EntityMapWithIntId e=new EntityMapWithIntId(cols,cols);
+		for(String col:e.cols()){
+			e.put(col, o.opt(col));
+		}
+		return e;
+	}
+	public EntityMapWithStringId toEntityMapWithStringId(JSONObject o, String pkCol){
+		if(o==null)return null;
+		List<String> cols = new ArrayList<>(o.keySet());
+		cols.remove(pkCol);
+		cols.add(0, pkCol);
+		EntityMapWithStringId e=new EntityMapWithStringId(cols,cols);
+		for(String col:e.cols()){
+			e.put(col, o.opt(col));
+		}
+		return e;
+	}
 
 	public String objectToWildCardedString(Object o){
 		if(o==null)return "%";
@@ -214,5 +246,54 @@ public class EntitiesAccess {
 		String req="update "+getTable()+" set "+col+"="+val;
 		if(where!=null)req+=" where "+where;
 		return dba().executeUpdate(req)>=0;
+	}
+
+	public boolean delete(String where){
+		String req="delete from "+getTable()+" where "+where;
+		return dba().executeUpdate(req)>=0;
+	}
+	public int insert(EntityMapWithIntId e) {
+		if (e.getId() < 0) {
+			int id = dba().getMax(getTable(), e.getIdKey());
+			if (id < 0) {
+				id = 0;
+			}
+			id++;
+			e.setId(id);
+		}
+		List<String>cols=e.cols();
+		String req = "insert into " + getTable() + "(" + ListsAndArrays.mergeList(cols, ",") + ")values(" + getInsertValues(cols, e) + ")";
+		return dba().executeUpdate(req);
+	}
+	public int update(EntityMapWithIntId e) {
+		if (e.getId() < 0) {
+			int id = dba().getMax(getTable(), e.getIdKey());
+			if (id < 0) {
+				id = 0;
+			}
+			id++;
+			e.setId(id);
+		}
+		List<String>cols=e.colsNoId();
+		String req = "update " + getTable() + " set " + getUpdateValues(cols, e) + " where "+e.getIdKey()+"="+e.getId();
+		return dba().executeUpdate(req);
+	}
+	public int update(EntityMapWithStringId e) {
+		if (e.getId() == null)return -1;/* {
+			int id = dba().getMax(getTable(), e.getIdKey());
+			if (id < 0) {
+				id = 0;
+			}
+			id++;
+			e.setId(id);
+		}*/
+		List<String>cols=e.colsNoId();
+		String req = "update " + getTable() + " set " + getUpdateValues(cols, e) + " where "+e.getIdKey()+"="+escapeString(e.getId());
+		return dba().executeUpdate(req);
+	}
+	public int insert(EntityMap e) {
+		List<String>cols=e.cols();
+		String req = "insert into " + getTable() + "(" + ListsAndArrays.mergeList(cols, ",") + ")values(" + getInsertValues(cols, e) + ")";
+		return dba().executeUpdate(req);
 	}
 }

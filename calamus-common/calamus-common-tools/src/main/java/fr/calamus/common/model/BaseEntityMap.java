@@ -5,7 +5,9 @@
  */
 package fr.calamus.common.model;
 
+import fr.calamus.common.tools.CommonDateFormats;
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,5 +43,18 @@ public class BaseEntityMap extends HashMap<String,Object> implements Serializabl
 			return -1;
 		}
 	}
-
+	public Date getDate(String k){
+		return getDate(k, false);
+	}
+	public Date getDate(String k,boolean updateStringToDate){
+		if(get(k)==null)return null;
+		if(get(k)instanceof Date)return (Date)get(k);
+		if(get(k)instanceof String){
+			Date d = CommonDateFormats.frParseDateOrNull(""+get(k));
+			if(d==null)d=CommonDateFormats.pgParseDateOrNull(""+get(k));
+			if(d!=null&&updateStringToDate)put(k,d);
+			return d;
+		}
+		return null;
+	}
 }

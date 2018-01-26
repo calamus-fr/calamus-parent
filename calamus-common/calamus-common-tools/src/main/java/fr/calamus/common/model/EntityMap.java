@@ -6,7 +6,6 @@
 package fr.calamus.common.model;
 
 import fr.calamus.common.tools.ListsAndArrays;
-import fr.calamus.common.tools.ToolBox;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;

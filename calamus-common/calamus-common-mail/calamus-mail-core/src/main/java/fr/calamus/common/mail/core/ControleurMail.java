@@ -341,5 +341,8 @@ public class ControleurMail {
 	public ListeMailing getListeMailingParNom(String nom) {
 		return getServiceMail().getListeMailing(nom);
 	}
+	public ListeMailing getListeMailingParId(int id) {
+		return getServiceMail().getListeMailing(id);
+	}
 
 }

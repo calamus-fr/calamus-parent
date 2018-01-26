@@ -1,6 +1,6 @@
 package fr.calamus.common.mail.model;
 
-import fr.calamus.common.model.EntityMapWithId;
+import fr.calamus.common.model.EntityMapWithIntId;
 import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-public class ListeMailing extends EntityMapWithId {
+public class ListeMailing extends EntityMapWithIntId {
 
 	private static final long serialVersionUID = 8438179663259827912L;
 	private List<Integer> idsDests;
@@ -31,7 +31,7 @@ public class ListeMailing extends EntityMapWithId {
 
 	@Override
 	public String toString(){
-		return getTitre() + " (" + df.format(getDateModif()) + ")";
+		return getTitre() + " (" + (getDateModif()==null?null:df.format(getDateModif())) + ")";
 	}
 
 	public Date getDateModif(){
@@ -46,13 +46,13 @@ public class ListeMailing extends EntityMapWithId {
 		return (String) get("titre");
 	}
 
-	public Integer getId(){
+	/*public Integer getId(){
 		return (Integer) get("id");
 	}
 
 	public void setId(int idl){
 		put("id", idl);
-	}
+	}*/
 
 	public void setTitre(String titre){
 		put("titre", titre);
