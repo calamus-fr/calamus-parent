@@ -217,6 +217,14 @@ public class EntitiesAccess {
 		}
 	}
 
+	public double stringToDouble(String s, double def) {
+		try{
+			return Double.parseDouble(s);
+		}catch(Exception e){
+			return def;
+		}
+	}
+
 	public boolean jsonHasNonEmptyValue(JSONObject o, String key) {
 		return o!=null && key!=null
 			&& o.has(key) && !ToolBox.isEmpty(o.optString(key));

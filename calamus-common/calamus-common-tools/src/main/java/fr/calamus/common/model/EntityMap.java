@@ -67,4 +67,13 @@ public class EntityMap extends BaseEntityMap{
 		return new ArrayList<>(labels);
 	}
 
+	public void removeCol(String col){
+		if(col==null)return;
+		int i=cols.indexOf(col);
+		if(i>=0){
+			cols.remove(i);
+			labels.remove(i);
+		}
+	}
+
 }
