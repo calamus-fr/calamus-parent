@@ -12,9 +12,9 @@
 	<modules>
 		<module>calamus-mail-core</module>
 		<module>calamus-mail-model</module>
-		<module>calamus-mail-view</module>
-		<!--module>calamus-mail-view-jt</module-->
-	 <module>calamus-mail-view-weblaf</module>
+		<!--module>calamus-mail-view</module>
+		<module>calamus-mail-view-jt</module>
+		<module>calamus-mail-view-weblaf</module-->
 	</modules>
 	<dependencyManagement>
 		<dependencies>

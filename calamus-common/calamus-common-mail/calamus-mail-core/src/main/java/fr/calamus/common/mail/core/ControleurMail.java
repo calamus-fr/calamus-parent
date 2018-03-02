@@ -44,7 +44,7 @@ public class ControleurMail {
 	public ControleurMail(){
 		log.debug("ControleurMail(constr)");
 		serviceMail = null;
-		composantsSensiblesAConnexion = Collections.synchronizedList(new ArrayList<ISensibleAConnexionMail>());
+		composantsSensiblesAConnexion = Collections.synchronizedList(new ArrayList<>());
 		if (tempCnx == null) {
 			log.debug("tempCnx == null");
 			tempCnx = MailDbConnectionManager.getConnection();
@@ -122,8 +122,8 @@ public class ControleurMail {
 	 * prop; }
 	 */
 
-	public void saveMail(EMailDataBean dataBean, String type, boolean ok){
-		getServiceMail().saveMail(dataBean, type, ok);
+	public boolean saveMail(EMailDataBean dataBean, String type, boolean ok){
+		return getServiceMail().saveMail(dataBean, type, ok)>=0;
 	}
 
 	public EMailDataBean getDataBean(int idMail){
@@ -181,7 +181,7 @@ public class ControleurMail {
 		boolean imapOk=getMailer().checkImap();
 		log.debug("imapOk="+imapOk);
 		modele.setMailConnectionOk(imapOk);
-		serviceMail = new MailsDataAccess(new DbAccess(tempCnx, IMailConstantes.createTableMap), mtc);
+		serviceMail = new MailsDataAccess(new DbAccess(tempCnx, IMailConstantes.createTableMap), mtc, controleurDests);
 		return modele;
 	}
 	public ModeleCentralMail initModele(IControleurConfUtilisateur controleurConf,
@@ -206,7 +206,7 @@ public class ControleurMail {
 		boolean imapOk=getMailer().checkImap();
 		log.debug("imapOk="+imapOk);
 		modele.setMailConnectionOk(imapOk);
-		serviceMail = new MailsDataAccess(new DbAccess(tempCnx, IMailConstantes.createTableMap), mtc);
+		serviceMail = new MailsDataAccess(new DbAccess(tempCnx, IMailConstantes.createTableMap), mtc, controleurDests);
 		return modele;
 	}
 	public ModeleCentralMail initModeleWebapp(IControleurConfUtilisateur controleurConf,
@@ -224,11 +224,19 @@ public class ControleurMail {
 		// mm.setParamsMailDefaut(getPropertiesDefaultMail());
 		//modele.setExpediteur(controleurConf.getMailUser());
 		modele.setParamsMailPersonnels(params);
+		if(params==null){
+			mailer=null;
+			modele.setCanAccessMailbox(false);
+			modele.setMailConnectionOk(false);
+		}
+		else{
+			mailer=new Mailer(params);
+			modele.setMailConnectionOk(getMailer().checkImap());
+		}
 		// mm.getParamsMailCustom().setFrom(mm.getParamsMailCustom().getUserSmtp().contains("@")?
 		// mm.getParamsMailCustom().getUserSmtp():mm.getParamsMailCustom().getUserSmtp()+"@"+mm.getParamsMailCustom().getHoteSmtp());
 		// mm.getParamsMailCustom().setFrom(controleurConf.getMailUser());
-		modele.setMailConnectionOk(getMailer().checkImap());
-		serviceMail = new MailsDataAccess(new DbAccess(baseAccess, isPg?IMailConstantes.createTableMapPg:IMailConstantes.createTableMap), mtc);
+		serviceMail = new MailsDataAccess(new DbAccess(baseAccess, isPg?IMailConstantes.createTableMapPg:IMailConstantes.createTableMap), mtc, controleurDests);
 		return modele;
 	}
 
@@ -250,7 +258,7 @@ public class ControleurMail {
 	 */
 
 	public Mailer getMailer(){
-		if (mailer == null)
+		if (mailer == null && modele.canAccessMailbox())
 			mailer = new Mailer();
 		return mailer;
 	}
@@ -344,5 +352,18 @@ public class ControleurMail {
 	public ListeMailing getListeMailingParId(int id) {
 		return getServiceMail().getListeMailing(id);
 	}
+	public boolean deleteMail(int id){
+		return getServiceMail().supprimerMail(id);
+	}
+	public boolean deleteMails(int[] ids){
+		return getServiceMail().deleteMails(ids);
+	}
 
+	public List<EMailDataBean> getMailsParDestinataire(int iddest) {
+		return getServiceMail().getMailsParDestinataire(iddest);
+	}
+
+	public List<EMailDataBean> getMails() {
+		return getServiceMail().getMails();
+	}
 }

@@ -528,7 +528,10 @@ WHERE r.conrelid = 'liens_categories_societes'::regclass AND r.contype = 'f' ORD
 			DatabaseMetaData md = getCnx().getMetaData();
 			log("listColumns:" + md.getDatabaseProductName(), 1);
 			if (md.getDatabaseProductName().toLowerCase().contains("postgres")) {
-				arg = null;
+				//arg = null;
+				String req = "select column_name from INFORMATION_SCHEMA.COLUMNS where table_name = "+ToolBox.echapperStringPourHSql(table);
+				List<String> l = selectStringCol(req, "column_name");
+				return l;
 			} else if (md.getDatabaseProductName().toLowerCase().contains("hsql")) {
 				arg = "PUBLIC";
 			}

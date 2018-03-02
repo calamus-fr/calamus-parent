@@ -23,10 +23,12 @@ public class ModeleCentralMail {
 			",");
 	//private List<String> fichiersParamsMail;
 	private boolean onlyModifyFroms;
+	private boolean canAccessMailbox;
 
 	public ModeleCentralMail(){
 		smtp2Enabled = false;
 		onlyModifyFroms=false;
+		canAccessMailbox=true;
 		//fichiersParamsMail = new Vector<String>();
 		//fichiersParamsMail.add(PROPFILE_MAIL);
 		paramsMail = new ArrayList<>();
@@ -127,4 +129,11 @@ public class ModeleCentralMail {
 		return onlyModifyFroms;
 	}
 
+	public boolean canAccessMailbox(){
+		return canAccessMailbox;
+	}
+
+	public void setCanAccessMailbox(boolean b){
+		canAccessMailbox=b;
+	}
 }

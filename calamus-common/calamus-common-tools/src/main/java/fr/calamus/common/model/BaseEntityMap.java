@@ -37,6 +37,7 @@ public class BaseEntityMap extends HashMap<String,Object> implements Serializabl
 	}
 	public int getInt(String k) {
 		if(get(k)==null)return -1;
+		if(get(k)instanceof Integer)return (Integer)get(k);
 		try{
 			return Integer.parseInt(""+get(k));
 		}catch(NumberFormatException e){
@@ -55,6 +56,16 @@ public class BaseEntityMap extends HashMap<String,Object> implements Serializabl
 			if(d!=null&&updateStringToDate)put(k,d);
 			return d;
 		}
+		return null;
+	}
+	public boolean getBoolean(String k, boolean defaultValue){
+		Boolean b=getBooleanOrNull(k);
+		if(b==null)return defaultValue;
+		return b;
+	}
+	public Boolean getBooleanOrNull(String k){
+		if("true".equalsIgnoreCase(""+get(k))||"1".equals(""+get(k)))return true;
+		if("false".equalsIgnoreCase(""+get(k))||"0".equals(""+get(k)))return false;
 		return null;
 	}
 }

@@ -51,4 +51,11 @@ public interface IServiceMail {
 
 	public ListeMailing getListeMailing(int id);
 
+	public boolean supprimerMail(int id);
+
+	public List<EMailDataBean> getMailsParDestinataire(int iddest);
+
+	public List<EMailDataBean> getMails();
+
+	public List<EMailDataBean> getMails(String where, String order);
 }

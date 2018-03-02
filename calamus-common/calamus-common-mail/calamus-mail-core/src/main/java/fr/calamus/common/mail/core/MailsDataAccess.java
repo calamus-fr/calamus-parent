@@ -16,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.text.DateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -29,13 +30,16 @@ public class MailsDataAccess implements IServiceMail {
 
 	private DbAccess dbAccess;
 	private ModeleTableContacts modeleTableContacts;
+	private IControleurDestinataires controleurDests;
 	private static final Log log = LogFactory.getLog(MailsDataAccess.class);
 
-	public MailsDataAccess(DbAccess dbAccess, ModeleTableContacts modeleTableContacts) {
+	public MailsDataAccess(DbAccess dbAccess, ModeleTableContacts modeleTableContacts, IControleurDestinataires controleurDests) {
 		this.dbAccess = dbAccess;
 		this.modeleTableContacts = modeleTableContacts;
+		this.controleurDests = controleurDests;
 	}
 
+	@Override
 	public Object[][] getMailsData(String type) {
 		String colsString = IMailConstantes.sColsMailsTableau;
 		List<String> colsList = ListsAndArrays.splitToStringList(colsString, ",");
@@ -56,7 +60,7 @@ public class MailsDataAccess implements IServiceMail {
 		boolean insert = false;
 		int id;
 		log.debug("saveMail " + em);
-		if (em.getId() == null) {
+		if (em.getId() == null || em.getId() < 0) {
 			Map<String, Object> mapId = dbAccess.selectOne("select max(id) from mails");
 			log.debug("map max=" + mapId);
 			List<String> keys = new ArrayList<>(mapId.keySet());
@@ -87,10 +91,13 @@ public class MailsDataAccess implements IServiceMail {
 				+ ToolBox.echapperStringPourHSql(type) + ",etat=" + ToolBox.echapperStringPourHSql(ok ? "Ok" : "Echec");
 			sql = "update mails set(" + vals + ") where id=" + em.getId();
 		}
-		dbAccess.executeUpdate(sql);
-		return id;
+		if (dbAccess.executeUpdate(sql) >= 0) {
+			return id;
+		}
+		return -1;
 	}
 
+	@Override
 	public EMailDataBean getEMailDataBean(int idMail) {
 		String sql = "select * from mails where id=" + idMail;
 		Map<String, Object> map = dbAccess.selectOne(sql);
@@ -100,7 +107,7 @@ public class MailsDataAccess implements IServiceMail {
 	public List<EMailDataBean> getEMailDataBeans(String type) {
 		String sql = "select * from mails where type=" + ToolBox.echapperStringPourHSql(type);
 		List<Map<String, Object>> maps = dbAccess.selectMany(sql);
-		List<EMailDataBean> l = new Vector<EMailDataBean>();
+		List<EMailDataBean> l = new Vector<>();
 		for (int i = 0; i < maps.size(); i++) {
 			l.add(mapToEMailDataBean(maps.get(i)));
 		}
@@ -122,6 +129,7 @@ public class MailsDataAccess implements IServiceMail {
 		return em;
 	}
 
+	@Override
 	public List<ModeleMailMap> getModelesMail() {
 		List<Map<String, Object>> lm = dbAccess.selectMany("select * from modeles_mails order by date_modif desc");
 		List<ModeleMailMap> mm = new ArrayList<>();
@@ -131,6 +139,7 @@ public class MailsDataAccess implements IServiceMail {
 		return mm;
 	}
 
+	@Override
 	public Map<Integer, List<Integer>> getMapIdsSocietesDansListesMailing() {
 		List<Map<String, Object>> ml = dbAccess
 			.selectMany("select id_liste,id_contact from contenu_listes_mailing order by id_liste,id_contact asc");
@@ -175,7 +184,7 @@ public class MailsDataAccess implements IServiceMail {
 			.selectMany("select id_liste,id_contact from contenu_listes_mailing,listes_mailing"
 				+ " where contenu_listes_mailing.id_liste=listes_mailing.id and titre="
 				+ ToolBox.echapperStringPourHSql(nomListe) + " order by id_contact asc");
-		List<Integer> l = new ArrayList<Integer>();
+		List<Integer> l = new ArrayList<>();
 		for (int i = 0; i < ml.size(); i++) {
 			int ids = (Integer) ml.get(i).get("id_contact");
 			l.add(ids);
@@ -184,7 +193,7 @@ public class MailsDataAccess implements IServiceMail {
 	}
 
 	public Map<String, Integer> getMapAffichageToIdListe() {
-		Map<String, Integer> m = new HashMap<String, Integer>();
+		Map<String, Integer> m = new HashMap<>();
 		DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, Locale.FRANCE);
 		List<Map<String, Object>> ml = dbAccess
 			.selectMany("select id,titre,date_modif from listes_mailing order by date_modif desc");
@@ -245,7 +254,9 @@ public class MailsDataAccess implements IServiceMail {
 			idListe = creerListe(nomListe);
 		}
 		log.debug("ajouterAListe idListe=" + idListe);
-		if(idListe==-1)return;
+		if (idListe == -1) {
+			return;
+		}
 		List<Integer> existants = getIdsContactsDansListeMailingParIdListe(idListe);
 		Statement st = dbAccess.openStatement();
 		try {
@@ -358,7 +369,7 @@ public class MailsDataAccess implements IServiceMail {
 	@Override
 	public List<ElementListeNoire> getListeNoire() {
 		List<Map<String, Object>> lm = dbAccess.selectMany("select * from liste_noire order by date_ajout asc");
-		List<ElementListeNoire> l = new Vector<ElementListeNoire>();
+		List<ElementListeNoire> l = new Vector<>();
 		for (int i = 0; i < lm.size(); i++) {
 			Map<String, Object> m = lm.get(i);
 			ElementListeNoire e = new ElementListeNoire((String) m.get("mail"), (Date) m.get("date_ajout"));
@@ -428,16 +439,16 @@ public class MailsDataAccess implements IServiceMail {
 		if (ids == null || ids.isEmpty()) {
 			return false;
 		}
-		if(s.length==1){
+		if (s.length == 1) {
 			ListeMailing lm = getListeMailing(s[0]);
-			log.debug("delete liste "+lm);
+			log.debug("delete liste " + lm);
 		}
-		String r1="delete from contenu_listes_mailing where id_liste in(" + ListsAndArrays.mergeList(ids, ", ") + ")";
-		String r2="delete from listes_mailing where id in(" + ListsAndArrays.mergeList(ids, ", ") + ")";
-		int n1=dbAccess.executeUpdate(r1);
-		int n2=dbAccess.executeUpdate(r2);
-		log.debug(r1+" -> "+n1);
-		log.debug(r2+" -> "+n2);
+		String r1 = "delete from contenu_listes_mailing where id_liste in(" + ListsAndArrays.mergeList(ids, ", ") + ")";
+		String r2 = "delete from listes_mailing where id in(" + ListsAndArrays.mergeList(ids, ", ") + ")";
+		int n1 = dbAccess.executeUpdate(r1);
+		int n2 = dbAccess.executeUpdate(r2);
+		log.debug(r1 + " -> " + n1);
+		log.debug(r2 + " -> " + n2);
 		return n2 >= 0;
 	}
 
@@ -475,6 +486,55 @@ public class MailsDataAccess implements IServiceMail {
 	private int creerListe(String nomListe) {
 		ListeMailing lm = new ListeMailing(new HashMap<>(), new ArrayList<>());
 		lm.setTitre(nomListe);
-		return saveListeMailing(lm)?lm.getId():-1;
+		return saveListeMailing(lm) ? lm.getId() : -1;
+	}
+
+	@Override
+	public boolean supprimerMail(int id) {
+		return deleteMails(new int[]{id});
+	}
+
+	@Override
+	public List<EMailDataBean> getMailsParDestinataire(int iddest) {
+		ListeDestinataires ld = controleurDests.getListeDestinatairesParIds(Arrays.asList(iddest));
+		if (ld.size() > 0) {
+			IDestinataireMap d = ld.getDestinataireMap(0);
+			String mail=d.getMail();
+			if(mail==null)return null;
+			List<EMailDataBean> mails = getMails("dests ilike '%"+ToolBox.echapperStringPourHSql(mail)+"%'", "id asc");
+			for (int i = 0; i < mails.size(); i++) {
+				EMailDataBean m = mails.get(i);
+				boolean ok=false;
+				List<String> dests = ListsAndArrays.splitToStringList(m.getTo(), ";");
+				for (int j = 0; j < dests.size(); j++) {
+					String dest = dests.get(j).trim();
+					if(dest.equalsIgnoreCase(mail))ok=true;
+				}
+				if(!ok){
+					mails.remove(i);
+					i--;
+				}
+			}
+			return mails;
+		}
+		return null;
+	}
+
+	@Override
+	public List<EMailDataBean> getMails() {
+		return getMails(null, "id asc");
+	}
+
+	@Override
+	public List<EMailDataBean> getMails(String where, String order) {
+		String sql = "select * from mails"
+			+ (where == null ? "" : " where " + where)
+			+ (order == null ? "" : " order by " + order);
+		List<Map<String, Object>> rl = dbAccess.selectMany(sql);
+		List<EMailDataBean> l = new ArrayList<>();
+		for (int i = 0; i < rl.size(); i++) {
+			l.add(mapToEMailDataBean(rl.get(i)));
+		}
+		return l;
 	}
 }
