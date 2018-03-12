@@ -100,6 +100,14 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	}
 
 	public List<String> listTables() {
+		return listTables(null);
+	}
+	/**
+	 *
+	 * @param toLower : false to put names to uppercase, true to put names to lowercase, null to take them as they come
+	 * @return
+	 */
+	public List<String> listTables(Boolean toLower) {
 		//openStatement();
 		ResultSet rs = null;
 		try {
@@ -118,7 +126,15 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		List<String> tablesExistantes = new ArrayList<>();
 		try {
 			while (rs.next()) {
-				tablesExistantes.add(rs.getString("TABLE_NAME"));
+				String name=rs.getString("TABLE_NAME");
+				if(toLower!=null){
+					if(toLower){
+						name=name.toLowerCase();
+					}else{
+						name=name.toUpperCase();
+					}
+				}
+				tablesExistantes.add(name);
 			}
 		} catch (SQLException e) {
 			logException(e);

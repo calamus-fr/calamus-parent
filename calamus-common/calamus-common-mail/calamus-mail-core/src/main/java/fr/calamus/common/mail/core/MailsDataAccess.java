@@ -60,7 +60,7 @@ public class MailsDataAccess implements IServiceMail {
 		boolean insert = false;
 		int id;
 		log.debug("saveMail " + em);
-		if (em.getId() == null || em.getId() < 0) {
+		if (em.getId() == null || em.getId() <= 0) {
 			Map<String, Object> mapId = dbAccess.selectOne("select max(id) from mails");
 			log.debug("map max=" + mapId);
 			List<String> keys = new ArrayList<>(mapId.keySet());
@@ -89,7 +89,7 @@ public class MailsDataAccess implements IServiceMail {
 				+ ToolBox.echapperStringPourHSql(em.getTexte()) + ",pjs="
 				+ ToolBox.echapperStringPourHSql(ListsAndArrays.mergeList(em.getPjs(), ", ")) + ",date=now(),type="
 				+ ToolBox.echapperStringPourHSql(type) + ",etat=" + ToolBox.echapperStringPourHSql(ok ? "Ok" : "Echec");
-			sql = "update mails set(" + vals + ") where id=" + em.getId();
+			sql = "update mails set " + vals + " where id=" + em.getId();
 		}
 		if (dbAccess.executeUpdate(sql) >= 0) {
 			return id;
@@ -501,7 +501,7 @@ public class MailsDataAccess implements IServiceMail {
 			IDestinataireMap d = ld.getDestinataireMap(0);
 			String mail=d.getMail();
 			if(mail==null)return null;
-			List<EMailDataBean> mails = getMails("dests ilike '%"+ToolBox.echapperStringPourHSql(mail)+"%'", "id asc");
+			List<EMailDataBean> mails = getMails("dests ilike "+ToolBox.echapperStringPourHSql("%"+mail+"%"), "id asc");
 			for (int i = 0; i < mails.size(); i++) {
 				EMailDataBean m = mails.get(i);
 				boolean ok=false;

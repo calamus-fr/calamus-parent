@@ -58,6 +58,29 @@ public class BaseEntityMap extends HashMap<String,Object> implements Serializabl
 		}
 		return null;
 	}
+	public Date setDate(String key, Object value){
+		if(value==null){
+			put(key,null);
+			return null;
+		}
+		if(value instanceof Date){
+			put(key,(Date)value);
+			return (Date)value;
+		}
+		if(value instanceof String){
+			Date d = CommonDateFormats.frParseDateOrNull(""+value);
+			if(d==null)d=CommonDateFormats.pgParseDateOrNull(""+value);
+			put(key,d);
+			return d;
+		}
+		if(value instanceof Number){
+			long n=((Number)value).longValue();
+			Date d=new Date(n);
+			put(key,d);
+			return d;
+		}
+		return null;
+	}
 	public boolean getBoolean(String k, boolean defaultValue){
 		Boolean b=getBooleanOrNull(k);
 		if(b==null)return defaultValue;
@@ -67,5 +90,22 @@ public class BaseEntityMap extends HashMap<String,Object> implements Serializabl
 		if("true".equalsIgnoreCase(""+get(k))||"1".equals(""+get(k)))return true;
 		if("false".equalsIgnoreCase(""+get(k))||"0".equals(""+get(k)))return false;
 		return null;
+	}
+
+	protected void checkDate(String key) {
+		Object od = get(key);
+		if(od!=null && od instanceof String){
+			String sd = (String)od;
+			Date d=CommonDateFormats.frParseDateOrNull(sd);
+			if(d==null)d=CommonDateFormats.pgParseDateOrNull(sd);
+			put(key,d);
+		}
+	}
+	protected void checkInteger(String key) {
+		Object od = get(key);
+		if(od!=null && od instanceof String){
+			Integer n=getInteger(key);
+			put(key,n);
+		}
 	}
 }
