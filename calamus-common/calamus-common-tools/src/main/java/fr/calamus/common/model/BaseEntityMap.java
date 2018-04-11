@@ -7,6 +7,8 @@ package fr.calamus.common.model;
 
 import fr.calamus.common.tools.CommonDateFormats;
 import java.io.Serializable;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -98,6 +100,27 @@ public class BaseEntityMap extends HashMap<String,Object> implements Serializabl
 			String sd = (String)od;
 			Date d=CommonDateFormats.frParseDateOrNull(sd);
 			if(d==null)d=CommonDateFormats.pgParseDateOrNull(sd);
+			put(key,d);
+		}
+	}
+	protected void checkDateTime(String key) {
+		Object od = get(key);
+		if(od!=null && od instanceof String){
+			String sd = (String)od;
+			SimpleDateFormat fmt = CommonDateFormats.frTimestampFormatter();
+			Date d=null;
+			try {
+				d=fmt.parse(sd);
+			} catch (ParseException ex) {
+				//log.warn(ex);
+				fmt = CommonDateFormats.pgTimestampFormatter();
+				try {
+					d=fmt.parse(sd);
+				} catch (ParseException ex1) {
+					d=null;
+				}
+			}
+			//if(d==null)d=CommonDateFormats.pgParseDateOrNull(sd);
 			put(key,d);
 		}
 	}

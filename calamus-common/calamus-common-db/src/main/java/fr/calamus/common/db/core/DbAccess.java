@@ -102,9 +102,11 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 	public List<String> listTables() {
 		return listTables(null);
 	}
+
 	/**
 	 *
-	 * @param toLower : false to put names to uppercase, true to put names to lowercase, null to take them as they come
+	 * @param toLower : false to put names to uppercase, true to put names to
+	 * lowercase, null to take them as they come
 	 * @return
 	 */
 	public List<String> listTables(Boolean toLower) {
@@ -126,12 +128,12 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 		List<String> tablesExistantes = new ArrayList<>();
 		try {
 			while (rs.next()) {
-				String name=rs.getString("TABLE_NAME");
-				if(toLower!=null){
-					if(toLower){
-						name=name.toLowerCase();
-					}else{
-						name=name.toUpperCase();
+				String name = rs.getString("TABLE_NAME");
+				if (toLower != null) {
+					if (toLower) {
+						name = name.toLowerCase();
+					} else {
+						name = name.toUpperCase();
 					}
 				}
 				tablesExistantes.add(name);
@@ -167,14 +169,16 @@ public class DbAccess<C extends Connection> implements Serializable, Cloneable {
 				if (contraintesExistantes == null) {
 					contraintesExistantes = new ArrayList<>();
 				} else {
-					log("existing constraints=" + contraintesExistantes,2);
+					log("existing constraints=" + contraintesExistantes, 2);
 				}
 				for (String c : m.keySet()) {
 					if (!contraintesExistantes.contains(c)) {
 						log("adding constraint " + c + "...", 0);
 						int n = executeUpdate(m.get(c));
-						log(n >= 0 ? "  ok" : "  error",1);
-					}else log(c+" already exists",1);
+						log(n >= 0 ? "  ok" : "  error", 1);
+					} else {
+						log(c + " already exists", 1);
+					}
 				}
 			}
 		}
@@ -522,6 +526,14 @@ WHERE r.conrelid = 'liens_categories_societes'::regclass AND r.contype = 'f' ORD
 		return getMax(null, table, col);
 	}
 
+	public int getNextIdExtend(String table, String col) {
+		int lastId = getMax(table, col);
+		if (lastId <= 0) {
+			return 1;
+		}
+		return lastId + 1;
+	}
+
 	public int getMax(Statement st, String table, String col) {
 		int n = -1;
 		Map<String, Object> map = selectOne(st, "select max(" + col + ") as maxid from " + table);
@@ -545,7 +557,7 @@ WHERE r.conrelid = 'liens_categories_societes'::regclass AND r.contype = 'f' ORD
 			log("listColumns:" + md.getDatabaseProductName(), 1);
 			if (md.getDatabaseProductName().toLowerCase().contains("postgres")) {
 				//arg = null;
-				String req = "select column_name from INFORMATION_SCHEMA.COLUMNS where table_name = "+ToolBox.echapperStringPourHSql(table);
+				String req = "select column_name from INFORMATION_SCHEMA.COLUMNS where table_name = " + ToolBox.echapperStringPourHSql(table);
 				List<String> l = selectStringCol(req, "column_name");
 				return l;
 			} else if (md.getDatabaseProductName().toLowerCase().contains("hsql")) {
