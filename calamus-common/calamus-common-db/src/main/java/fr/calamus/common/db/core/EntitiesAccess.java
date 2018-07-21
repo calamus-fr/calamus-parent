@@ -78,7 +78,7 @@ public class EntitiesAccess {
 		return dba;
 	}
 
-	protected String getTable() {
+	public String getTable() {
 		return table;
 	}
 	protected RequestBuilder maybeAddOffsetAndLimit(RequestBuilder rb, Integer offset, Integer limit) {
@@ -142,6 +142,8 @@ public class EntitiesAccess {
 				v = "null";
 			} else if (e.get(c) instanceof Long || e.get(c) instanceof Integer) {
 				v = "" + e.get(c);
+			} else if (e.get(c) instanceof Boolean) {
+				v = ((Boolean)e.get(c))?"true":"false";
 			} else if (e.get(c) instanceof Timestamp) {
 				v = escapeString(CommonDateFormats.pgTimestampFormatter().format(e.get(c)));
 			} else if (e.get(c) instanceof Date) {
@@ -172,6 +174,14 @@ public class EntitiesAccess {
 	public EntityMap toEntityMap(JSONObject o){
 		if(o==null)return null;
 		EntityMap e=new EntityMap(new ArrayList<>(o.keySet()));
+		for(String col:e.cols()){
+			e.put(col, o.opt(col));
+		}
+		return e;
+	}
+	public EntityMap toEntityMap(JSONObject o, List<String>cols){
+		if(o==null)return null;
+		EntityMap e=new EntityMap(cols);
 		for(String col:e.cols()){
 			e.put(col, o.opt(col));
 		}
@@ -286,15 +296,13 @@ public class EntitiesAccess {
 		String req = "update " + getTable() + " set " + getUpdateValues(cols, e) + " where "+e.getIdKey()+"="+e.getId();
 		return dba().executeUpdate(req);
 	}
+	public int update(EntityMap e, String where) {
+		List<String>cols=e.cols();
+		String req = "update " + getTable() + " set " + getUpdateValues(cols, e) + " where "+where;
+		return dba().executeUpdate(req);
+	}
 	public int update(EntityMapWithStringId e) {
-		if (e.getId() == null)return -1;/* {
-			int id = dba().getMax(getTable(), e.getIdKey());
-			if (id < 0) {
-				id = 0;
-			}
-			id++;
-			e.setId(id);
-		}*/
+		if (e.getId() == null)return -1;
 		List<String>cols=e.colsNoId();
 		String req = "update " + getTable() + " set " + getUpdateValues(cols, e) + " where "+e.getIdKey()+"="+escapeString(e.getId());
 		return dba().executeUpdate(req);
