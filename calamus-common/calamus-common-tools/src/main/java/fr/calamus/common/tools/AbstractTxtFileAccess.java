@@ -48,6 +48,7 @@ public abstract class AbstractTxtFileAccess {
 	 */
 	protected BufferedWriter prepareBufferedWriter() throws IOException {
 		File f = getFile();
+		if(!f.getParentFile().exists())f.getParentFile().mkdirs();
 		if (f.exists()) {
 			f.delete();
 			//log.debug("prepareBufferedWriter : " + f.getAbsolutePath() + " deleted");

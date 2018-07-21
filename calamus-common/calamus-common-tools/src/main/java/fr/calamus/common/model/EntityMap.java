@@ -76,4 +76,10 @@ public class EntityMap extends BaseEntityMap{
 		}
 	}
 
+	public void addCol(String col, String label){
+		if(col==null)return;
+		if(label==null)label=col;
+		cols.add(col);
+		labels.add(label);
+	}
 }

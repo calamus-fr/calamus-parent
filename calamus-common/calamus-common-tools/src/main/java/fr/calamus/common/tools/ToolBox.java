@@ -25,12 +25,13 @@ public class ToolBox {
 	 *
 	 * @param url
 	 */
-	public static void browse(String url) {
+	public static boolean browse(String url) {
 		if (Desktop.isDesktopSupported()) {
 			Desktop desktop = Desktop.getDesktop();
 			if (desktop.isSupported(Desktop.Action.BROWSE)) {
 				try {
 					desktop.browse(new URI(url));
+					return true;
 				} catch (IOException e1) {
 					e1.printStackTrace();
 				} catch (URISyntaxException e1) {
@@ -42,6 +43,7 @@ public class ToolBox {
 		} else {
 			log("desktop not supported");
 		}
+		return false;
 	}
 
 	public static void log(String s, Object o) {
@@ -162,8 +164,8 @@ public class ToolBox {
 	public static List<String> get(String url) throws IOException {
 		List<String> l = new ArrayList<>();
 		// String source ="";
-		URL oracle = new URL(url);
-		URLConnection yc = oracle.openConnection();
+		URL uRL = new URL(url);
+		URLConnection yc = uRL.openConnection();
 		BufferedReader in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
 		String inputLine;
 
